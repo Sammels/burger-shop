@@ -6,6 +6,7 @@ from .models import Product, Order, OrderItem
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 
 
 def banners_list_api(request):
@@ -62,19 +63,46 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    order = json.loads(request.body.decode())
-    new_order = Order.objects.create(
-        first_name=order['firstname'],
-        last_name=order['lastname'],
-        phonenumber=order['phonenumber'],
-        address=order['address']
+    order = request.data
+    errors = {
+        'product_key_error': {'error': 'Products key not presented, null or empty list'},
+        'product_key_not_list': {'error': 'Products is not list'},
+        'save_order_general_error': {'error': 'Unable to save order'},
+        'request_type_error': {'error': 'Bad request. The request must be in JSON format'},
+    }
+    print(order)
+    try:
+        product = order['products']
+    except KeyError:
+        content = errors['product_key_error']
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    if not product:
+        content = errors['product_key_error']
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    if not isinstance(product, list):
+        content = errors['product_key_error']
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
-    )
-    for product in order['products']:
-        product_obj = Product.objects.get(pk=product['product'])
-        OrderItem.objects.create(
-            order=new_order,
-            product=product_obj,
-            quantity=product['quantity'],
+    try:
+        new_order = Order.objects.create(
+            first_name=order['firstname'],
+            last_name=order['lastname'],
+            phonenumber=order['phonenumber'],
+            address=order['address']
+
         )
-    return Response(order)
+        for product in order['products']:
+            product_obj = Product.objects.get(pk=product['product'])
+            OrderItem.objects.create(
+                order=new_order,
+                product=product_obj,
+                quantity=product['quantity'],
+            )
+    except TypeError:
+        content = errors['request_type_error']
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        content = errors['save_order_general_error']
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response(order)
