@@ -2,8 +2,11 @@ import json
 from django.http import JsonResponse
 from django.templatetags.static import static
 
-
 from .models import Product, Order, OrderItem
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 
 def banners_list_api(request):
     # FIXME move data to db?
@@ -57,6 +60,7 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
     order = json.loads(request.body.decode())
     new_order = Order.objects.create(
@@ -73,4 +77,4 @@ def register_order(request):
             product=product_obj,
             quantity=product['quantity'],
         )
-    return JsonResponse({})
+    return Response(order)
