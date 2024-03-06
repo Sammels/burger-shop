@@ -8,6 +8,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
+from phonenumber_field import validators
+from django.core.exceptions import ValidationError, ObjectDoesNotExist, MultipleObjectsReturned
+
 
 def banners_list_api(request):
     # FIXME move data to db?
@@ -65,22 +68,57 @@ def product_list_api(request):
 def register_order(request):
     order = request.data
     errors = {
-        'product_key_error': {'error': 'Products key not presented, null or empty list'},
-        'product_key_not_list': {'error': 'Products is not list'},
-        'save_order_general_error': {'error': 'Unable to save order'},
-        'request_type_error': {'error': 'Bad request. The request must be in JSON format'},
+        'product_key_error': {'product_error': 'Products key not presented, null or empty list'},
+        'product_key_not_list': {'product_error': 'Products is not list'},
+        'incorrect_product_id': {'product_error': 'Incorrect product id'},
+        'request_type_error': {'request_error': 'Bad request. The request must be in JSON format'},
+        'save_order_general_error': {'order_error': 'Unable to save order'},
+        'firstname_empty_field': {'firstname_error': 'Firstname field is required'},
+        'firstname_not_string': {'firstname_error': 'First name field not string'},
+        'lastname_empty_field': {'lastname_error': 'Lastname field is required'},
+        'address_empty_field': {'address_error': 'Address field is empty'},
+        'phonenumber_empty_field': {'phonenumber_error': 'Phone field is required'},
+        'phonenumber_incorrect_field': {'phonenumber_error': 'The phonenumber is incorrect.'},
+        'user_fields_empty': {'error': 'Firstname, lastname, phonenumber, and address fields are required'}
     }
     print(order)
     try:
-        product = order['products']
+        products = order['products']
     except KeyError:
         content = errors['product_key_error']
         return Response(content, status=status.HTTP_400_BAD_REQUEST)
-    if not product:
+    if not products:
         content = errors['product_key_error']
         return Response(content, status=status.HTTP_400_BAD_REQUEST)
-    if not isinstance(product, list):
+    if not isinstance(products, list):
         content = errors['product_key_error']
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    if not isinstance(order.get('firstname'), str):
+        content = errors['firstname_not_string']
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    if not order.get('firstname') and not order.get('lastname')\
+        and not order.get('phonenumber') and not order.get('address'):
+        content = errors['user_fields_empty']
+        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    for field in ('firstname', 'lastname', 'phonenumber', 'address'):
+        if not order.get(field):
+            content = errors[f'{field}_empty_field']
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+    for product in products:
+        try:
+            Product.objects.get(pk=product['product'])
+        except ObjectDoesNotExist:
+            content = errors['incorrect_product_id']
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        except MultipleObjectsReturned:
+            content = errors['incorrect_product_id']
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        validators.validate_international_phonenumber(order['phonenumber'])
+    except ValidationError:
+        content = errors['phonenumber_incorrect_field']
         return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
     try:
