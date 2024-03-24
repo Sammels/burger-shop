@@ -1,4 +1,4 @@
-import json
+from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
@@ -70,14 +70,15 @@ def register_order(request):
 
     products = serializer.validated_data.get('product', [])
 
-    new_order = Order.objects.create(
-        firstname=serializer.validated_data['firstname'],
-        lastname=serializer.validated_data['lastname'],
-        phonenumber=serializer.validated_data['phonenumber'],
-        address=serializer.validated_data['address'],
-    )
-    order_items = [OrderItem(order=new_order, **fields) for fields in products]
-    OrderItem.objects.bulk_create(order_items)
+    with transaction.atomic():
+        new_order = Order.objects.create(
+            firstname=serializer.validated_data['firstname'],
+            lastname=serializer.validated_data['lastname'],
+            phonenumber=serializer.validated_data['phonenumber'],
+            address=serializer.validated_data['address'],
+        )
+        order_items = [OrderItem(order=new_order, **fields) for fields in products]
+        OrderItem.objects.bulk_create(order_items)
 
     serializer_new_order = OrderSerializer(new_order)
     return Response(serializer_new_order.data)
