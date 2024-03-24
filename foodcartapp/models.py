@@ -131,7 +131,7 @@ class OrderQuerySet(models.QuerySet):
                 'products',
                 queryset=OrderItem.objects.select_related('product'),
             )).annotate(
-            total_cost=Sum(F('products__product__price') * F('products__quantity'))
+            total_cost=Sum(F('products__price') * F('products__quantity'))
             ).all()
 
 class Order(models.Model):
@@ -156,6 +156,14 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name="products", verbose_name="заказ", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, related_name="order_items", verbose_name="продукт", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(verbose_name="количество", default=1)
+    price = models.DecimalField(
+        verbose_name='цена',
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        null=False,
+        blank=False,
+    )
 
     class Meta:
         verbose_name = "пункт заказа"

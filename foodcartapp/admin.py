@@ -113,6 +113,17 @@ class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
 
+    def save_formset(self, form, formset, change):
+        instances = formset.save(commit=False)
+        for obj in formset.deleted_objects:
+            obj.delete()
+        for instance in instances:
+            product = Product.objects.get(pk=instance.pk)
+            instance.price = product.price
+            instance.save()
+        formset.save_m2m()
+
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
