@@ -20,17 +20,19 @@
       <th>Клиент</th>
       <th>Телефон</th>
       <th>Адрес доставки</th>
+      <th>Комментарии</th>
       <th>Ссылка на Админ панель.</th>
     </tr>
 
     {% for item in order_items %}
       <tr>
-        <td>{{item.id}}</td>
+        <td>{{ item.id }}</td>
         <td>{{ item.status_full }}</td>
-        <td>{{ite.total_cost}}</td>
-        <td>{{item.firstname}} {{item.lastname}}</td>
-        <td>{{item.phonenumber}}</td>
-        <td>{{item.address}}</td>
+        <td>{{ item.total_cost }}</td>
+        <td>{{ item.firstname }} {{ item.lastname }}</td>
+        <td>{{ item.phonenumber }}</td>
+        <td>{{ item.address }}</td>
+        <td>{{ item.comment }}</td>
         <td><a href='{% url "admin:foodcartapp_order_change" object_id=item.id %}?next={{ current_url|urlencode }}'>Редактировать</a></td>
       </tr>
     {% endfor %}

@@ -8,9 +8,6 @@ from .models import Product, Order, OrderItem
 from .serializers import OrderSerializer, ProductSerializer
 
 
-
-
-
 def banners_list_api(request):
     # FIXME move data to db?
     return JsonResponse([
@@ -62,14 +59,11 @@ def product_list_api(request):
         'indent': 4,
     })
 
-
 @api_view(['POST'])
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-
-    products = serializer.validated_data.get('product', [])
-
+    products = serializer.validated_data.get('products', [])
     with transaction.atomic():
         new_order = Order.objects.create(
             firstname=serializer.validated_data['firstname'],
@@ -80,5 +74,6 @@ def register_order(request):
         order_items = [OrderItem(order=new_order, **fields) for fields in products]
         OrderItem.objects.bulk_create(order_items)
 
-    serializer_new_order = OrderSerializer(new_order)
-    return Response(serializer_new_order.data)
+    serialized_new_order = OrderSerializer(new_order)
+
+    return Response(serialized_new_order.data)
