@@ -8,20 +8,27 @@ class OrderItemSerializer(ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['product', 'name', 'quantity']
+        fields = ["product", "name", "quantity"]
 
 
 class OrderSerializer(ModelSerializer):
     products = OrderItemSerializer(many=True, allow_empty=False)
     total_cost = IntegerField(read_only=True)
-    status_full = CharField(source='get_status_display', read_only=True)
+    status_full = CharField(source="get_status_display", read_only=True)
 
     class Meta:
         model = Order
-        fields = '__all__'
-        read_only_fields = ('status', 'comment', 'create_at')
+        fields = "__all__"
+        read_only_fields = (
+            "status",
+            "comment",
+            "registered_at",
+            "create_at",
+            "delivered_at",
+        )
+
 
 class ProductSerializer(ModelSerializer):
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = "__all__"
