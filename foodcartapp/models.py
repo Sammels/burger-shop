@@ -118,11 +118,15 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+    NEW = 1
+    COOKING = 2
+    DELIVERY = 3
+    CLOSED = 4
     STATUSES = [
-        ("new", "Необработанный"),
-        ("cooking", "Готовится"),
-        ("delivery", "Доставляется"),
-        ("closed", "Завершен"),
+        ("NEW", "Необработанный"),
+        ("COOKING", "Готовится"),
+        ("DELIVERY", "Доставляется"),
+        ("CLOSED", "Завершен"),
     ]
     PAYMENT_METHODS = [
         ("cash", "Наличные"),
@@ -145,7 +149,7 @@ class Order(models.Model):
         verbose_name="статус",
         max_length=15,
         choices=STATUSES,
-        default="new",
+        default="NEW",
         db_index=True,
         null=False,
     )
@@ -165,9 +169,17 @@ class Order(models.Model):
         verbose_name="способ оплаты",
         max_length=15,
         choices=PAYMENT_METHODS,
-        default='cash',
+        default="cash",
         db_index=True,
         null=False,
+    )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        on_delete=models.PROTECT,
+        related_name="orders",
+        verbose_name="Исполнитель",
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -176,6 +188,17 @@ class Order(models.Model):
 
     def __str__(self):
         return f"{self.pk}: {self.registered_at.strftime('%d.%m.%Y')} - {self.address}"
+
+    def get_available_restaraunt(self):
+        available_restaurants = Restaurant.objects.filter(
+            menu_items__product__in=self.product.all().value_list("product", flat=True),
+            menu_items__availability=True,
+        ).annotate(
+            num_order_items=Count("menu_items__product")
+            .filter(num_order_items=len(self.products.all()))
+            .distinct()
+        )
+        return available_restaurants
 
     objects = OrderQuerySet.as_manager()
 

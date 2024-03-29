@@ -109,9 +109,9 @@ def view_restaurants(request):
 @user_passes_test(is_manager, login_url="restaurateur:login")
 def view_orders(request):
     orders = OrderSerializer(
-        Order.objects.orders_with_total_cost_and_prefetched_products().filter(
-            status="new"
-        ),
+        Order.objects.orders_with_total_cost_and_prefetched_products()
+        .exclude(status="CLOSED")
+        .order_by("-status"),
         many=True,
     )
     current_url = request.path
