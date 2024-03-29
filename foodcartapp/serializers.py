@@ -25,7 +25,7 @@ class OrderSerializer(ModelSerializer):
     available_restaurants = RestaurantSerializer(
         source="get_available_restaurants", many=True, read_only=True
     )
-    restaurant_info = RestaurantSerializer(source="reastaurant", read_only=True)
+    restaurant_info = RestaurantSerializer(source="restaurant", read_only=True)
 
     class Meta:
         model = Order
@@ -33,10 +33,10 @@ class OrderSerializer(ModelSerializer):
         read_only_fields = (
             "status",
             "comment",
-            "registered_at",
             "create_at",
+            "called_at",
             "delivered_at",
-            "reastaurant",
+            "restaurant",
         )
 
 

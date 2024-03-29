@@ -1,6 +1,8 @@
+import json
+
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.db.models import QuerySet, Prefetch, Sum, Count, F
+from django.db.models import QuerySet, Prefetch, Sum, Count, F, Subquery, OuterRef
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -129,8 +131,8 @@ class Order(models.Model):
         ("CLOSED", "Завершен"),
     ]
     PAYMENT_METHODS = [
-        ("cash", "Наличные"),
-        ("card", "Электронный платеж"),
+        ("cash", "Наличными (при получении)"),
+        ("card", "Картой (при оформлении)"),
     ]
     firstname = models.CharField(
         max_length=40,
@@ -158,13 +160,20 @@ class Order(models.Model):
         blank=True,
     )
     registered_at = models.DateTimeField(
-        verbose_name="Дата создания", auto_now_add=True, db_index=True
+        verbose_name="дата создания",
+        auto_now_add=True,
+        db_index=True,
     )
-    called_at = models.DateTimeField(verbose_name="Дата звонка", null=True, blank=True)
+    called_at = models.DateTimeField(
+        verbose_name="дата звонка",
+        null=True,
+        blank=True,
+    )
     delivered_at = models.DateTimeField(
-        verbose_name="Дата доставки", null=True, blank=True
+        verbose_name="дата доставки",
+        null=True,
+        blank=True,
     )
-
     payment_method = models.CharField(
         verbose_name="способ оплаты",
         max_length=15,
@@ -189,15 +198,19 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.pk}: {self.registered_at.strftime('%d.%m.%Y')} - {self.address}"
 
-    def get_available_restaraunt(self):
-        available_restaurants = Restaurant.objects.filter(
-            menu_items__product__in=self.product.all().value_list("product", flat=True),
-            menu_items__availability=True,
-        ).annotate(
-            num_order_items=Count("menu_items__product")
+    def get_available_restaurants(self):
+        available_restaurants = (
+            Restaurant.objects.filter(
+                menu_items__product__in=self.products.all().values_list(
+                    "product", flat=True
+                ),
+                menu_items__availability=True,
+            )
+            .annotate(num_order_items=Count("menu_items__product"))
             .filter(num_order_items=len(self.products.all()))
             .distinct()
         )
+
         return available_restaurants
 
     objects = OrderQuerySet.as_manager()

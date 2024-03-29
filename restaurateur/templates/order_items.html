@@ -12,6 +12,7 @@
   <br/>
   <br/>
   <div class="container">
+
    <table class="table table-responsive">
     <tr>
       <th>ID заказа</th>
@@ -21,9 +22,9 @@
       <th>Клиент</th>
       <th>Телефон</th>
       <th>Адрес доставки</th>
-      <th>Комментарии</th>
+      <th>Комментарий</th>
       <th>Рестораны</th>
-      <th>Ссылка на Админ панель.</th>
+      <th>Ссылка на админку</th>
     </tr>
 
     {% for item in order_items %}
@@ -31,7 +32,7 @@
         <td>{{ item.id }}</td>
         <td>{{ item.status_full }}</td>
         <td>{{ item.payment_method_full }}</td>
-        <td>{{ item.total_cost }}</td>
+        <td>{{ item.total_cost }} руб.</td>
         <td>{{ item.firstname }} {{ item.lastname }}</td>
         <td>{{ item.phonenumber }}</td>
         <td>{{ item.address }}</td>

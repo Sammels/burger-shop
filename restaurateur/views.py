@@ -115,7 +115,6 @@ def view_orders(request):
         many=True,
     )
     current_url = request.path
-    print(request.path)
     return render(
         request,
         template_name="order_items.html",
