@@ -124,6 +124,10 @@ class Order(models.Model):
         ("delivery", "Доставляется"),
         ("closed", "Завершен"),
     ]
+    PAYMENT_METHODS = [
+        ("cash", "Наличные"),
+        ("card", "Электронный платеж"),
+    ]
     firstname = models.CharField(
         max_length=40,
         verbose_name="имя",
@@ -155,6 +159,15 @@ class Order(models.Model):
     called_at = models.DateTimeField(verbose_name="Дата звонка", null=True, blank=True)
     delivered_at = models.DateTimeField(
         verbose_name="Дата доставки", null=True, blank=True
+    )
+
+    payment_method = models.CharField(
+        verbose_name="способ оплаты",
+        max_length=15,
+        choices=PAYMENT_METHODS,
+        default='cash',
+        db_index=True,
+        null=False,
     )
 
     class Meta:
