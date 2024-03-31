@@ -155,7 +155,6 @@ class OrderQuerySet(models.QuerySet):
                     ]
                 )
             )
-            .all()
         )
 
 
@@ -239,7 +238,7 @@ class Order(models.Model):
             if not self.restaurant:
                 available_restaurants = (
                     Restaurant.objects.filter(
-                        menu_items__product__in=self.products.all().values_list(
+                        menu_items__product__in=self.products.values_list(
                             "product", flat=True
                         ),
                         menu_items__availability=True,
@@ -267,7 +266,7 @@ class Order(models.Model):
         elif list_for == "admin":
             available_restaurants = (
                 Restaurant.objects.filter(
-                    menu_items__product__in=self.products.all().values_list(
+                    menu_items__product__in=self.products.values_list(
                         "product", flat=True
                     ),
                     menu_items__availability=True,
