@@ -1,7 +1,5 @@
 import requests
 from environs import Env
-from geopy import distance
-
 
 env = Env()
 env.read_env()
@@ -15,17 +13,17 @@ def fetch_coordinates(apikey, address):
         "format": "json",
     })
     response.raise_for_status()
-    found_place = response.json()['response']['GeoObjectCollection']['featureMember']
+    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
 
-    if not found_place:
+    if not found_places:
         return None
 
-    most_relevant = found_place[0]
-    lon, lat = most_relevant['GeoObject']['Point']['pos'].split("")
+    most_relevant = found_places[0]
+    lon, lat = most_relevant['GeoObject']['Point']['pos'].split(" ")
     return lon, lat
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     apikey = env('YANDEX_API')
     print(apikey)
     coords = fetch_coordinates(apikey, "")

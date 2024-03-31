@@ -7,7 +7,10 @@ from mapapp.models import Address
 
 
 class Restaurant(models.Model):
-    name = models.CharField("название", max_length=50)
+    name = models.CharField(
+        "название",
+        max_length=50,
+    )
     address = models.CharField(
         "адрес",
         max_length=100,
@@ -41,7 +44,10 @@ class ProductQuerySet(models.QuerySet):
 
 
 class ProductCategory(models.Model):
-    name = models.CharField("название", max_length=50)
+    name = models.CharField(
+        "название",
+        max_length=50,
+    )
 
     class Meta:
         verbose_name = "категория"
@@ -52,7 +58,10 @@ class ProductCategory(models.Model):
 
 
 class Product(models.Model):
-    name = models.CharField("название", max_length=50)
+    name = models.CharField(
+        "название",
+        max_length=50,
+    )
     category = models.ForeignKey(
         ProductCategory,
         verbose_name="категория",
@@ -62,9 +71,14 @@ class Product(models.Model):
         on_delete=models.SET_NULL,
     )
     price = models.DecimalField(
-        "цена", max_digits=8, decimal_places=2, validators=[MinValueValidator(0)]
+        "цена",
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
     )
-    image = models.ImageField("картинка")
+    image = models.ImageField(
+        "картинка",
+    )
     special_status = models.BooleanField(
         "спец.предложение",
         default=False,
@@ -99,12 +113,18 @@ class RestaurantMenuItem(models.Model):
         related_name="menu_items",
         verbose_name="продукт",
     )
-    availability = models.BooleanField("в продаже", default=True, db_index=True)
+    availability = models.BooleanField(
+        "в продаже",
+        default=True,
+        db_index=True,
+    )
 
     class Meta:
         verbose_name = "пункт меню ресторана"
         verbose_name_plural = "пункты меню ресторана"
-        unique_together = [["restaurant", "product"]]
+        unique_together = [
+            ["restaurant", "product"],
+        ]
 
     def __str__(self):
         return f"{self.restaurant.name} - {self.product.name}"
@@ -297,7 +317,9 @@ class OrderItem(models.Model):
     class Meta:
         verbose_name = "пункт заказа"
         verbose_name_plural = "пункты заказа"
-        unique_together = [["order", "product"]]
+        unique_together = [
+            ["order", "product"],
+        ]
 
     def __str__(self):
         return f"{self.order.pk}: {self.product.name} - {self.quantity}"

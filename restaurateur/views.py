@@ -8,7 +8,7 @@ from django.views import View
 from geopy import distance
 
 from foodcartapp.models import Product, Restaurant, Order
-from foodcartapp.serializers import OrderSerializer
+from foodcartapp.serializers import OrderViewSerializer
 
 
 class Login(forms.Form):
@@ -17,7 +17,10 @@ class Login(forms.Form):
         max_length=75,
         required=True,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Укажите имя пользователя"}
+            attrs={
+                "class": "form-control",
+                "placeholder": "Укажите имя пользователя",
+            },
         ),
     )
     password = forms.CharField(
@@ -25,7 +28,10 @@ class Login(forms.Form):
         max_length=75,
         required=True,
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Введите пароль"}
+            attrs={
+                "class": "form-control",
+                "placeholder": "Введите пароль",
+            }
         ),
     )
 
@@ -33,7 +39,13 @@ class Login(forms.Form):
 class LoginView(View):
     def get(self, request, *args, **kwargs):
         form = Login()
-        return render(request, "login.html", context={"form": form})
+        return render(
+            request,
+            "login.html",
+            context={
+                "form": form,
+            },
+        )
 
     def post(self, request):
         form = Login(request.POST)
@@ -106,7 +118,7 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url="restaurateur:login")
 def view_orders(request):
-    orders = OrderSerializer(
+    orders = OrderViewSerializer(
         Order.objects.orders_with_total_cost_and_prefetched_products()
         .exclude(status="CLOSED")
         .order_by("status"),

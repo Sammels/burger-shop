@@ -1,5 +1,6 @@
-import requests
 import logging
+
+import requests
 from django import forms
 from django.conf import settings
 from django.contrib import admin
@@ -16,7 +17,6 @@ from .models import Product, Order, OrderItem
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
-
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s",
@@ -43,7 +43,9 @@ class RestaurantAdmin(admin.ModelAdmin):
         "address",
         "contact_phone",
     ]
-    inlines = [RestaurantMenuItemInline]
+    inlines = [
+        RestaurantMenuItemInline,
+    ]
 
     def save_model(self, request, obj, form, change):
         apikey = settings.YANDEX_APIKEY
@@ -83,7 +85,9 @@ class ProductAdmin(admin.ModelAdmin):
         "category__name",
     ]
 
-    inlines = [RestaurantMenuItemInline]
+    inlines = [
+        RestaurantMenuItemInline,
+    ]
     fieldsets = (
         (
             "Общее",
@@ -94,7 +98,7 @@ class ProductAdmin(admin.ModelAdmin):
                     "image",
                     "get_image_preview",
                     "price",
-                ]
+                ],
             },
         ),
         (
@@ -104,7 +108,9 @@ class ProductAdmin(admin.ModelAdmin):
                     "special_status",
                     "description",
                 ],
-                "classes": ["wide"],
+                "classes": [
+                    "wide",
+                ],
             },
         ),
     )
@@ -114,7 +120,9 @@ class ProductAdmin(admin.ModelAdmin):
     ]
 
     class Media:
-        css = {"all": (static("admin/foodcartapp.css"))}
+        css = {
+            "all": (static("admin/foodcartapp.css")),
+        }
 
     def get_image_preview(self, obj):
         if not obj.image:

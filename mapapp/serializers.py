@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, CharField, IntegerField
+from rest_framework.serializers import ModelSerializer
 
 from mapapp.models import Address
 
@@ -6,5 +6,4 @@ from mapapp.models import Address
 class AddressSerializer(ModelSerializer):
     class Meta:
         model = Address
-        fields = "__all__"
-
+        fields = ['lon', 'lat']

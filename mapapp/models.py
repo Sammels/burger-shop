@@ -8,19 +8,19 @@ class Address(models.Model):
         db_index=True,
     )
     lat = models.FloatField(
-        verbose_name="Широта",
+        verbose_name='широта',
         null=True,
         blank=True,
     )
     lon = models.FloatField(
-        verbose_name="Долгота",
+        verbose_name='долгота',
         null=True,
         blank=True,
     )
 
     class Meta:
-        verbose_name = "адрес"
-        verbose_name_plural = "адреса"
+        verbose_name = 'адрес'
+        verbose_name_plural = 'адреса'
 
     def __str__(self):
-        return f"{self.address} ({self.lon}, {self.lat})"
+        return f'{self.address} ({self.lon}, {self.lat})'
