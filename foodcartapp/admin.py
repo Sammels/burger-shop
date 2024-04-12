@@ -7,6 +7,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.shortcuts import reverse
 from django.templatetags.static import static
+from django.utils.encoding import iri_to_uri
 from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
 
@@ -19,7 +20,7 @@ from .models import Restaurant
 from .models import RestaurantMenuItem
 
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s",
+    format='%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s',
     level=logging.INFO,
 )
 
@@ -34,14 +35,14 @@ class RestaurantMenuItemInline(admin.TabularInline):
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
     search_fields = [
-        "name",
-        "address",
-        "contact_phone",
+        'name',
+        'address',
+        'contact_phone',
     ]
     list_display = [
-        "name",
-        "address",
-        "contact_phone",
+        'name',
+        'address',
+        'contact_phone',
     ]
     inlines = [
         RestaurantMenuItemInline,
@@ -58,7 +59,7 @@ class RestaurantAdmin(admin.ModelAdmin):
                     new_address.lat = coords[1]
                     new_address.save()
             except requests.exceptions.HTTPError:
-                logger.info(f"Плохой запрос:{obj.address}")
+                logger.info(f'Плохой запрос:{obj.address}')
         else:
             pass
         super(RestaurantAdmin, self).save_model(request, obj, form, change)
@@ -67,83 +68,71 @@ class RestaurantAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = [
-        "get_image_list_preview",
-        "name",
-        "category",
-        "price",
+        'get_image_list_preview',
+        'name',
+        'category',
+        'price',
     ]
     list_display_links = [
-        "name",
+        'name',
     ]
     list_filter = [
-        "category",
+        'category',
     ]
     search_fields = [
         # FIXME SQLite can not convert letter case for cyrillic words properly, so search will be buggy.
         # Migration to PostgreSQL is necessary
-        "name",
-        "category__name",
+        'name',
+        'category__name',
     ]
 
     inlines = [
         RestaurantMenuItemInline,
     ]
     fieldsets = (
-        (
-            "Общее",
-            {
-                "fields": [
-                    "name",
-                    "category",
-                    "image",
-                    "get_image_preview",
-                    "price",
-                ],
-            },
-        ),
-        (
-            "Подробно",
-            {
-                "fields": [
-                    "special_status",
-                    "description",
-                ],
-                "classes": [
-                    "wide",
-                ],
-            },
-        ),
+        ('Общее', {
+            'fields': [
+                'name',
+                'category',
+                'image',
+                'get_image_preview',
+                'price',
+            ],
+        }),
+        ('Подробно', {
+            'fields': [
+                'special_status',
+                'description',
+            ],
+            'classes': [
+                'wide',
+            ],
+        }),
     )
 
     readonly_fields = [
-        "get_image_preview",
+        'get_image_preview',
     ]
 
     class Media:
         css = {
-            "all": (static("admin/foodcartapp.css")),
+            "all": (
+                static("admin/foodcartapp.css")
+            ),
         }
 
     def get_image_preview(self, obj):
         if not obj.image:
-            return "выберите картинку"
-        return format_html(
-            '<img src="{url}" style="max-height: 200px;"/>', url=obj.image.url
-        )
-
-    get_image_preview.short_description = "превью"
+            return 'выберите картинку'
+        return format_html('<img src="{url}" style="max-height: 200px;"/>', url=obj.image.url)
+    get_image_preview.short_description = 'превью'
 
     def get_image_list_preview(self, obj):
         if not obj.image or not obj.id:
-            return "нет картинки"
-        edit_url = reverse("admin:foodcartapp_product_change", args=(obj.id,))
-        return format_html(
-            '<a href="{edit_url}"><img src="{src}" style="max-height: 50px;"/></a>',
-            edit_url=edit_url,
-            src=obj.image.url,
-        )
-
-    get_image_list_preview.short_description = "превью"
+            return 'нет картинки'
+        edit_url = reverse('admin:foodcartapp_product_change', args=(obj.id,))
+        return format_html('<a href="{edit_url}"><img src="{src}" style="max-height: 50px;"/></a>', edit_url=edit_url, src=obj.image.url)
+    get_image_list_preview.short_description = 'превью'
 
 
 @admin.register(ProductCategory)
@@ -165,7 +154,6 @@ class OrderItemInline(admin.TabularInline):
             instance.save()
         formset.save_m2m()
 
-
 class OrderAdminForm(forms.ModelForm):
     class Meta:
         model = Order
@@ -174,38 +162,37 @@ class OrderAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(OrderAdminForm, self).__init__(*args, **kwargs)
         if self.instance:
-            self.fields["restaurant"].queryset = (
-                self.instance.get_available_restaurants(list_for="admin")
-            )
+            self.fields['restaurant'].queryset = self.instance.get_available_restaurants(list_for='admin')
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     form = OrderAdminForm
     list_display = (
-        "id",
-        "firstname",
-        "lastname",
-        "phonenumber",
-        "address",
-        "status",
+        'id',
+        'firstname',
+        'lastname',
+        'phonenumber',
+        'address',
+        'status',
     )
-    inlines = (OrderItemInline,)
+    inlines = (
+        OrderItemInline,
+    )
 
     def response_post_save_change(self, request, obj):
         res = super().response_post_save_change(request, obj)
-        if "next" in request.GET:
-            if url_has_allowed_host_and_scheme(
-                request.GET["next"], ALLOWED_HOSTS, require_https=False
-            ):
-                return HttpResponseRedirect(request.GET["next"])
+        next_url = request.GET['next']
+        if next_url and url_has_allowed_host_and_scheme(request.GET['next'], None):
+            return HttpResponseRedirect(iri_to_uri(request.GET['next']))
         else:
             return res
 
+
     def save_model(self, request, obj, form, change):
         if obj.restaurant:
-            if obj.status == "NEW":
-                obj.status = "COOKING"
+            if obj.status == 'NEW':
+                obj.status = 'COOKING'
 
         apikey = settings.YANDEX_APIKEY
         if not Address.objects.filter(address=obj.address).exists():
@@ -217,7 +204,7 @@ class OrderAdmin(admin.ModelAdmin):
                     new_address.lat = coords[1]
                     new_address.save()
             except requests.exceptions.HTTPError:
-                logger.info(f"Плохой запрос:{obj.address}")
+                logger.info(f'Плохой запрос:{obj.address}')
         else:
             pass
         super().save_model(request, obj, form, change)
