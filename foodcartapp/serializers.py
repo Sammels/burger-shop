@@ -4,9 +4,12 @@ from rest_framework.serializers import (
     IntegerField,
     FloatField,
 )
-
+from django.db import transaction
 from mapapp.serializers import AddressSerializer
 from .models import Order, OrderItem, Restaurant
+from geo import fetch_coordinates
+from mapapp.models import Address
+import requests
 
 
 class OrderItemSerializer(ModelSerializer):
@@ -38,14 +41,34 @@ class OrderSerializer(ModelSerializer):
     products = OrderItemSerializer(many=True, allow_empty=False)
     total_cost = IntegerField(read_only=True)
 
-
     def create(self, validated_data):
-        return Order.objects.create(
-            firstname=validated_data["firstname"],
-            lastname=validated_data["lastname"],
-            phonenumber=validated_data["phonenumber"],
-            address=validated_data["address"],
-        )
+        products = validated_data.pop("products")
+        with transaction.atomic():
+            order = Order.objects.create(
+                firstname=validated_data["firstname"],
+                lastname=validated_data["lastname"],
+                phonenumber=validated_data["phonenumber"],
+                address=validated_data["address"],
+            )
+            nessesary_products = [product["product"] for product in products]
+            order_items = [OrderItem(order=order, **product) for product in products]
+            for index, order_item in enumerate(order_items):
+                order_item.price = nessesary_products[index].price
+            OrderItem.objects.bulk_create(order_items)
+
+            if not Address.objects.filter(address=order.address).exists():
+                new_address = Address.objects.create(address=order.address)
+                try:
+                    coords = fetch_coordinates(order.address)
+                    if coords is not None:
+                        new_address.lon = coords[0]
+                        new_address.lat = coords[1]
+                        new_address.save()
+                except requests.exceptions.HTTPError:
+                    print(f"Плохой запрос:{order.address}")
+            else:
+                pass
+        return order
 
     class Meta:
         model = Order
