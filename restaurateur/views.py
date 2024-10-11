@@ -11,6 +11,7 @@ from foodcartapp.models import Product, Restaurant, Order
 from foodcartapp.serializers import OrderViewSerializer
 
 
+
 class Login(forms.Form):
     username = forms.CharField(
         label="Логин",
