@@ -209,6 +209,26 @@ chmod ugo+x deploy_star_burger.sh
 ./deploy_star_burger.sh
 ```
 
+Добавить в скрипт. Это нужно чтобы инфа о деплое падала в Rollback
+
+```bash
+json_payload=$(
+cat <<EOF
+{
+"revision": "$(git rev-parse --short HEAD)",
+"environment": "$(echo $ROLLBAR_ENV)",
+"rollbar_username": "<your_name>",
+"comment": "$(git log -1 --pretty=format:"%s")"
+}
+EOF
+)
+curl --request POST https://api.rollbar.com/api/1/deploy \
+--header "X-Rollbar-Access-Token: $(echo $ROLLBAR_TOKEN)" \
+--header "Accept: application/json" \
+--header "Content-Type: application/json" \
+--data "$json_payload"
+```
+
 
 
 ## Цели проекта
