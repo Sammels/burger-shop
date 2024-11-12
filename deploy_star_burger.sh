@@ -30,5 +30,22 @@ python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
+echo "add deploy info to Rollbar"
+json_payload=$(
+cat <<EOF
+{
+"revision": "$(git rev-parse --short HEAD)",
+"environment": "$(echo $ROLLBAR_ENV)",
+"rollbar_username": "<your_name>",
+"comment": "$(git log -1 --pretty=format:"%s")"
+}
+EOF
+)
+curl --request POST https://api.rollbar.com/api/1/deploy \
+--header "X-Rollbar-Access-Token: $(echo $ROLLBAR_TOKEN)" \
+--header "Accept: application/json" \
+--header "Content-Type: application/json" \
+--data "$json_payload"
+
 echo "restart burger-shop service"
 sudo systemctl restart burger-shop.service
