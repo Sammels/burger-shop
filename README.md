@@ -152,6 +152,65 @@ Parcel будет следить за файлами в каталоге `bundle
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 
+
+## Развертывание, и обновление проекта в рабочей среде.
+
+Для обновления, развертывания необходимо в директории проекта создать файл `deploy_star_burger.sh`.
+Используя текстовый редактор `nano, vim` открыть его:
+```code
+nano deploy_starburger.sh
+```
+
+Вставьте данный код
+```bash
+!/bin/bash
+
+echo "Start deploy script"
+
+set -e
+
+
+echo "Add Work dir"
+ENV_DIR=/opt/StarBurger/
+WORK_DIR=/opt/StarBurger/star-burger
+
+echo "Activate env"
+cd $ENV_DIR
+source  .venv/bin/activate
+
+cd $WORK_DIR
+
+echo "Download last updated fises from repo"
+git pull origin master
+
+echo "Install python requirements"
+pip install -r requirements.txt
+
+echo "Build frontend"
+npm ci --dev
+./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
+
+echo "Make Django-python migrations"
+python manage.py makemigrations --noinput
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+
+echo "restart burger-shop service"
+sudo systemctl restart burger-shop.service
+```
+
+Сделать его исполняемым
+```bash
+chmod ugo+x deploy_star_burger.sh
+```
+
+При обновлении проекта выполнить
+```bash
+./deploy_star_burger.sh
+```
+
+
+
 ## Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
