@@ -229,7 +229,8 @@ curl --request POST https://api.rollbar.com/api/1/deploy \
 --data "$json_payload"
 ```
 
-
+## Пример работающего сайта
+[Развернутый сайт на сервере](https://starburger.4w350m3.ru/)
 
 ## Цели проекта
 
